@@ -1,0 +1,66 @@
+@QuickOrder.Api_HostAddress = http://localhost:5276
+
+### Obtener menu
+GET {{QuickOrder.Api_HostAddress}}/api/menu
+Accept: application/json
+
+###
+
+### Obtener pedidos activos
+GET {{QuickOrder.Api_HostAddress}}/api/orders/active
+Accept: application/json
+
+###
+
+### Crear pedido (mesa 1, 2 productos)
+POST {{QuickOrder.Api_HostAddress}}/api/orders
+Content-Type: application/json
+
+{
+  "tableId": 1,
+  "notes": "Sin cebolla en la hamburguesa",
+  "items": [
+    {
+      "productId": 13,
+      "quantity": 2,
+      "notes": null
+    },
+    {
+      "productId": 5,
+      "quantity": 1,
+      "notes": null
+    }
+  ]
+}
+
+###
+
+### Cambiar estado a InPreparation
+PATCH {{QuickOrder.Api_HostAddress}}/api/orders/1/status
+Content-Type: application/json
+
+{
+  "status": "InPreparation"
+}
+
+###
+
+### Cambiar estado a Ready
+PATCH {{QuickOrder.Api_HostAddress}}/api/orders/1/status
+Content-Type: application/json
+
+{
+  "status": "Ready"
+}
+
+###
+
+### Cambiar estado a Delivered
+PATCH {{QuickOrder.Api_HostAddress}}/api/orders/1/status
+Content-Type: application/json
+
+{
+  "status": "Delivered"
+}
+
+###

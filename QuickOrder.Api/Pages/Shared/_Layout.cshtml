@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — QuickOrder</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: #111;
+            color: #f0f0f0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Navbar ── */
+        nav {
+            background: #1a1a1a;
+            border-bottom: 2px solid #f59e0b;
+            display: flex;
+            align-items: center;
+            padding: 0 2rem;
+            height: 56px;
+            gap: 0;
+        }
+
+        .nav-brand {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #f59e0b;
+            text-decoration: none;
+            margin-right: 2rem;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-links {
+            display: flex;
+            height: 100%;
+            gap: 0;
+        }
+
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0 1.1rem;
+            color: #9ca3af;
+            text-decoration: none;
+            font-size: 0.9rem;
+            height: 100%;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: color 0.15s, border-color 0.15s;
+        }
+
+        .nav-links a:hover { color: #f0f0f0; }
+
+        .nav-links a.active {
+            color: #f59e0b;
+            border-bottom-color: #f59e0b;
+        }
+
+        .nav-links a .icon { font-size: 1rem; }
+
+        .nav-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        #status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+        }
+        #status-dot.connected { background: #22c55e; }
+
+        #connection-label { font-size: 0.78rem; color: #6b7280; }
+
+        /* ── Contenido ── */
+        main { flex: 1; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a class="nav-brand" href="/">QuickOrder</a>
+    <div class="nav-links">
+        <a href="/" class="@(ViewData["Page"]?.ToString() == "Kitchen" ? "active" : "")">
+            <span class="icon">🍳</span> Cocina
+        </a>
+        <a href="/history" class="@(ViewData["Page"]?.ToString() == "History" ? "active" : "")">
+            <span class="icon">📋</span> Historial
+        </a>
+    </div>
+    <div class="nav-right">
+        <span id="connection-label">Conectando...</span>
+        <span id="status-dot"></span>
+    </div>
+</nav>
+
+<main>
+    @RenderBody()
+</main>
+
+@RenderSection("Scripts", required: false)
+
+</body>
+</html>

@@ -1,0 +1,258 @@
+@page
+@model QuickOrder.Api.Pages.HistoryModel
+@{
+    ViewData["Title"] = "Historial";
+    ViewData["Page"] = "History";
+}
+
+<style>
+    .toolbar {
+        padding: 1rem 2rem;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    input[type="text"] {
+        background: #1e1e1e;
+        border: 1px solid #374151;
+        border-radius: 6px;
+        color: #f0f0f0;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.9rem;
+        width: 220px;
+    }
+
+    .filter-btn {
+        border: 1px solid #374151;
+        background: #1e1e1e;
+        color: #9ca3af;
+        border-radius: 6px;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: color 0.15s, border-color 0.15s;
+    }
+    .filter-btn.active { border-color: #f59e0b; color: #f59e0b; }
+
+    .count { font-size: 0.85rem; color: #6b7280; margin-left: auto; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+
+    thead th {
+        text-align: left;
+        padding: 0.6rem 1rem;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #6b7280;
+        border-bottom: 1px solid #2d2d2d;
+    }
+
+    tbody tr.order-row {
+        border-bottom: 1px solid #1e1e1e;
+        cursor: pointer;
+        transition: background 0.1s;
+    }
+    tbody tr.order-row:hover { background: #1a1a1a; }
+
+    td { padding: 0.75rem 1rem; vertical-align: middle; }
+
+    .badge {
+        display: inline-block;
+        border-radius: 4px;
+        padding: 0.2rem 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .badge-Pending       { background: #f59e0b22; color: #f59e0b; }
+    .badge-InPreparation { background: #3b82f622; color: #3b82f6; }
+    .badge-Ready         { background: #22c55e22; color: #22c55e; }
+    .badge-Delivered     { background: #6b728022; color: #9ca3af; }
+    .badge-Cancelled     { background: #ef444422; color: #ef4444; }
+
+    .items-list { color: #9ca3af; font-size: 0.82rem; }
+
+    .drawer { display: none; background: #1a1a1a; border-top: 1px solid #2d2d2d; }
+    .drawer.open { display: table-row; }
+
+    .drawer-inner {
+        padding: 1rem 2rem 1.5rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    .drawer h3 {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #6b7280;
+        margin-bottom: 0.75rem;
+    }
+
+    .items-detail { list-style: none; }
+    .items-detail li {
+        padding: 0.3rem 0;
+        color: #d1d5db;
+        display: flex;
+        gap: 0.5rem;
+        border-bottom: 1px solid #2d2d2d;
+        font-size: 0.88rem;
+    }
+    .items-detail li:last-child { border: none; }
+    .qty { color: #f59e0b; font-weight: 700; min-width: 1.5rem; }
+
+    .timeline { list-style: none; position: relative; padding-left: 1.2rem; }
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 5px; top: 6px; bottom: 6px;
+        width: 1px;
+        background: #2d2d2d;
+    }
+    .timeline li {
+        position: relative;
+        padding: 0.3rem 0 0.3rem 1rem;
+        font-size: 0.85rem;
+        color: #d1d5db;
+    }
+    .timeline li::before {
+        content: '';
+        position: absolute;
+        left: -4px; top: 9px;
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: #374151;
+        border: 2px solid #f59e0b;
+    }
+    .timeline .arrow { color: #f59e0b; margin: 0 0.3rem; }
+    .timeline .ts { color: #6b7280; font-size: 0.78rem; margin-left: 0.5rem; }
+
+    .no-movements { color: #4b5563; font-size: 0.85rem; font-style: italic; }
+    .empty-state { text-align: center; padding: 4rem; color: #4b5563; }
+</style>
+
+<div class="toolbar">
+    <input type="text" id="search" placeholder="Buscar por mesa o #pedido..." oninput="filterOrders()" />
+    @foreach (var s in new[] { "Todos", "Pending", "InPreparation", "Ready", "Delivered", "Cancelled" })
+    {
+        <button class="filter-btn @(s == "Todos" ? "active" : "")" onclick="setFilter('@s', this)">
+            @(s == "Todos" ? "Todos" : s == "Pending" ? "Pendiente" : s == "InPreparation" ? "En prep." : s == "Ready" ? "Listo" : s == "Delivered" ? "Entregado" : "Cancelado")
+        </button>
+    }
+    <span class="count" id="count"></span>
+</div>
+
+@if (!Model.Orders.Any())
+{
+    <div class="empty-state">Sin pedidos registrados</div>
+}
+else
+{
+    <table id="orders-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Mesa</th>
+                <th>Estado</th>
+                <th>Productos</th>
+                <th>Creado</th>
+                <th>Último cambio</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in Model.Orders)
+            {
+                <tr class="order-row" data-status="@order.Status" data-search="@order.TableNumber @order.Id"
+                    onclick="toggleDrawer(@order.Id)">
+                    <td>#@order.Id</td>
+                    <td>Mesa @order.TableNumber</td>
+                    <td><span class="badge badge-@order.Status">@order.Status</span></td>
+                    <td class="items-list">@string.Join(", ", order.Items.Select(i => $"{i.Quantity}x {i.ProductName}"))</td>
+                    <td>@order.CreatedAt.ToLocalTime().ToString("dd/MM HH:mm")</td>
+                    <td>@order.UpdatedAt.ToLocalTime().ToString("dd/MM HH:mm")</td>
+                </tr>
+                <tr class="drawer" id="drawer-@order.Id">
+                    <td colspan="6">
+                        <div class="drawer-inner">
+                            <div>
+                                <h3>Productos</h3>
+                                <ul class="items-detail">
+                                    @foreach (var item in order.Items)
+                                    {
+                                        <li>
+                                            <span class="qty">@item.Quantity x</span>
+                                            <span>@item.ProductName</span>
+                                            <span style="margin-left:auto;color:#6b7280">$@item.UnitPrice.ToString("N0")</span>
+                                        </li>
+                                    }
+                                </ul>
+                                @if (!string.IsNullOrEmpty(order.Notes))
+                                {
+                                    <p style="margin-top:0.75rem;font-size:0.85rem;color:#9ca3af;font-style:italic">📝 @order.Notes</p>
+                                }
+                            </div>
+                            <div>
+                                <h3>Movimientos</h3>
+                                @if (!order.Movements.Any())
+                                {
+                                    <p class="no-movements">Sin movimientos registrados</p>
+                                }
+                                else
+                                {
+                                    <ul class="timeline">
+                                        @foreach (var m in order.Movements)
+                                        {
+                                            <li>
+                                                <span>@m.FromStatus</span>
+                                                <span class="arrow">→</span>
+                                                <span>@m.ToStatus</span>
+                                                <span class="ts">@m.ChangedAt.ToLocalTime().ToString("HH:mm:ss")</span>
+                                            </li>
+                                        }
+                                    </ul>
+                                }
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@section Scripts {
+<script>
+    let currentFilter = 'Todos';
+
+    function toggleDrawer(id) {
+        document.getElementById(`drawer-${id}`).classList.toggle('open');
+    }
+
+    function setFilter(status, btn) {
+        currentFilter = status;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filterOrders();
+    }
+
+    function filterOrders() {
+        const search = document.getElementById('search').value.toLowerCase();
+        let visible = 0;
+        document.querySelectorAll('.order-row').forEach(row => {
+            const show = (currentFilter === 'Todos' || row.dataset.status === currentFilter)
+                      && (!search || row.dataset.search.toLowerCase().includes(search));
+            row.style.display = show ? '' : 'none';
+            const id = row.getAttribute('onclick').match(/\d+/)[0];
+            const drawer = document.getElementById(`drawer-${id}`);
+            if (!show) { drawer.style.display = 'none'; drawer.classList.remove('open'); }
+            if (show) visible++;
+        });
+        document.getElementById('count').textContent = `${visible} pedido${visible !== 1 ? 's' : ''}`;
+    }
+
+    filterOrders();
+</script>
+}
