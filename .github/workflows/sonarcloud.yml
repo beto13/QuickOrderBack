@@ -15,7 +15,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # SonarCloud necesita el historial completo para blame y new code
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -38,7 +38,8 @@ jobs:
             /d:sonar.token="${SONAR_TOKEN}" \
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.cs.vscoveragexml.reportsPaths="coverage.xml" \
-            /d:sonar.exclusions="**/Migrations/**,**/Pages/**"
+            /d:sonar.exclusions="**/Migrations/**,**/Pages/**" \
+            /d:sonar.coverage.exclusions="**Tests*/**"
 
       - name: Build
         run: dotnet build --no-incremental
