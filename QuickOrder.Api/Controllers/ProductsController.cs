@@ -42,6 +42,16 @@ public class ProductsController(IMediator mediator) : ControllerBase
         return Ok(ApiResponse<ProductDto>.Ok(result, "Producto actualizado correctamente."));
     }
 
+    [HttpPost("{id}/image")]
+    [Consumes("multipart/form-data")]
+    public async Task<ActionResult<ApiResponse<string>>> UploadImage(int id, IFormFile file, CancellationToken cancellationToken)
+    {
+        var url = await mediator.Send(
+            new UploadProductImageCommand(id, file.OpenReadStream(), file.ContentType, file.FileName, file.Length),
+            cancellationToken);
+        return Ok(ApiResponse<string>.Ok(url, "Imagen subida correctamente."));
+    }
+
     [HttpDelete("{id}")]
     public async Task<ActionResult<ApiResponse<object>>> Delete(int id, CancellationToken cancellationToken)
     {

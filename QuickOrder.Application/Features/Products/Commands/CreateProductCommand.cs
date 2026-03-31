@@ -22,6 +22,6 @@ public class CreateProductCommandHandler(
         productRepository.Add(product);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new ProductDto(product.Id, product.Name, product.Description);
+        return new ProductDto(product.Id, product.Name, product.Description, product.ImageUrl);
     }
 }
