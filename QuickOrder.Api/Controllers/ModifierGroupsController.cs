@@ -8,7 +8,7 @@ using QuickOrder.Application.Features.ModifierGroups.Queries;
 namespace QuickOrder.Api.Controllers;
 
 [ApiController]
-[Route("api/modifier-groups")]
+[Route("api/[controller]")]
 public class ModifierGroupsController(IMediator mediator) : ControllerBase
 {
     [HttpGet]

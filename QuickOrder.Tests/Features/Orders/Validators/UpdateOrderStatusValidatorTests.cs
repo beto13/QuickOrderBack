@@ -1,5 +1,6 @@
 using QuickOrder.Application.Features.Orders.Commands;
 using QuickOrder.Application.Features.Orders.Validators;
+using Xunit;
 
 namespace QuickOrder.Tests.Features.Orders.Validators;
 

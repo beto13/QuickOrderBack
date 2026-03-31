@@ -11,6 +11,14 @@ public class OrderRepository(AppDbContext db) : IOrderRepository
     public Task<Order?> FindByIdAsync(int id, CancellationToken cancellationToken = default) =>
         db.Orders.FindAsync([id], cancellationToken).AsTask();
 
+    public Task<Order?> GetByIdWithDetailsAsync(int id, CancellationToken cancellationToken = default) =>
+        db.Orders
+            .Include(o => o.Table)
+            .Include(o => o.Menu)
+            .Include(o => o.Items).ThenInclude(i => i.MenuProduct).ThenInclude(mp => mp.Product)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
+
     public Task<List<Order>> GetActiveAsync(CancellationToken cancellationToken = default) =>
         db.Orders
             .Include(o => o.Table)

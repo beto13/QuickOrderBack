@@ -145,7 +145,7 @@
     <span class="count" id="count"></span>
 </div>
 
-@if (!Model.Orders.Any())
+@if (!Model.Orders.Items.Any())
 {
     <div class="empty-state">Sin pedidos registrados</div>
 }
@@ -163,7 +163,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var order in Model.Orders)
+            @foreach (var order in Model.Orders.Items)
             {
                 <tr class="order-row" data-status="@order.Status" data-search="@order.TableNumber @order.Id"
                     onclick="toggleDrawer(@order.Id)">

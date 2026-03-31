@@ -1,7 +1,7 @@
 using MediatR;
 using QuickOrder.Application.DTOs;
 using QuickOrder.Application.Interfaces;
-using QuickOrder.Domain.Entities;
+using MenuEntity = QuickOrder.Domain.Entities.Menu;
 
 namespace QuickOrder.Application.Features.Menus.Commands;
 
@@ -13,7 +13,7 @@ public class CreateMenuCommandHandler(
 {
     public async Task<MenuDto> Handle(CreateMenuCommand request, CancellationToken cancellationToken)
     {
-        var menu = new Menu { Name = request.Name };
+        var menu = new MenuEntity { Name = request.Name };
 
         menuRepository.Add(menu);
         await unitOfWork.SaveChangesAsync(cancellationToken);

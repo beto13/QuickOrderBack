@@ -11,6 +11,13 @@ namespace QuickOrder.Api.Controllers;
 [Route("api/[controller]")]
 public class OrdersController(IMediator mediator) : ControllerBase
 {
+    [HttpGet("{id}")]
+    public async Task<ActionResult<ApiResponse<OrderDto>>> GetById(int id, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new GetOrderByIdQuery(id), cancellationToken);
+        return Ok(ApiResponse<OrderDto>.Ok(result));
+    }
+
     [HttpGet("active")]
     public async Task<ActionResult<ApiResponse<List<OrderDto>>>> GetActiveOrders(CancellationToken cancellationToken)
     {

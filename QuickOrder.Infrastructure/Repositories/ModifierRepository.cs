@@ -21,6 +21,14 @@ public class ModifierRepository(AppDbContext db) : IModifierRepository
         return (items, total);
     }
 
+    public async Task<(List<Modifier> Items, int TotalCount)> GetAllPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var query = db.Modifiers.AsNoTracking().OrderBy(m => m.Name);
+        var total = await query.CountAsync(cancellationToken);
+        var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);
+        return (items, total);
+    }
+
     public Task<Modifier?> FindByIdAsync(int id, CancellationToken cancellationToken = default) =>
         db.Modifiers.FindAsync([id], cancellationToken).AsTask();
 

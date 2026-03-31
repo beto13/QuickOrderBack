@@ -12,13 +12,15 @@ namespace QuickOrder.Api.Controllers;
 public class ModifiersController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<PaginatedResponse<ModifierDto>>>> GetByGroup(
-        [FromQuery] int modifierGroupId,
+    public async Task<ActionResult<ApiResponse<PaginatedResponse<ModifierDto>>>> GetAll(
+        [FromQuery] int? modifierGroupId,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        var result = await mediator.Send(new GetModifiersByGroupQuery(modifierGroupId, pageNumber, pageSize), cancellationToken);
+        var result = modifierGroupId.HasValue
+            ? await mediator.Send(new GetModifiersByGroupQuery(modifierGroupId.Value, pageNumber, pageSize), cancellationToken)
+            : await mediator.Send(new GetAllModifiersQuery(pageNumber, pageSize), cancellationToken);
         return Ok(ApiResponse<PaginatedResponse<ModifierDto>>.Ok(result));
     }
 

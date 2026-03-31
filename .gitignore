@@ -11,6 +11,14 @@
 *.sln.docstates
 *.env
 
+# Local secrets / overrides (never commit these)
+appsettings.*.local.json
+appsettings.local.json
+secrets.json
+*.crt
+*.key
+*.pem
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
