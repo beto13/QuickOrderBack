@@ -2,15 +2,15 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: quickorder
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-quickorder}
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -23,25 +23,31 @@ services:
       - "8080:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=quickorder;Username=postgres;Password=postgres"
-      Sqs__Region: "us-east-1"
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-quickorder};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}"
+      Sqs__Region: "${SQS_REGION:-us-east-1}"
       Sqs__QueueUrl: "${SQS_QUEUE_URL}"
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   worker:
     build:
       context: .
       dockerfile: Dockerfile.Worker
     environment:
-      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=quickorder;Username=postgres;Password=postgres"
-      Sqs__Region: "us-east-1"
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-quickorder};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}"
+      Sqs__Region: "${SQS_REGION:-us-east-1}"
       Sqs__QueueUrl: "${SQS_QUEUE_URL}"
       SignalR__HubUrl: "http://api:8080/hubs/orders"
     depends_on:
       api:
-        condition: service_started
+        condition: service_healthy
 
 volumes:
   pgdata:

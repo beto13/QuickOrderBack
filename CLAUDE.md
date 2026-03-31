@@ -76,7 +76,7 @@ QuickOrder.Worker        → BackgroundService (consume SQS, notifica via Signal
 - Al agregar entidades nuevas: agregar `DbSet` en `AppDbContext` y en `IAppDbContext`
 
 ## AWS SQS
-- Queue: `https://sqs.us-east-1.amazonaws.com/487037338775/QuickOrderQueue`
+- Queue: configurar via variable de entorno `Sqs__QueueUrl` o `appsettings.local.json`
 - Region: `us-east-1`
 - El Worker conecta como cliente SignalR al hub `/hubs/orders` de la API
 

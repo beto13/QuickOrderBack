@@ -30,7 +30,7 @@ public class OrdersController(IMediator mediator) : ControllerBase
     {
         var command = new CreateOrderCommand(request.TableId, request.MenuId, request.Notes, request.Items);
         var result = await mediator.Send(command, cancellationToken);
-        return CreatedAtAction(nameof(GetActiveOrders), new { id = result.Id }, ApiResponse<OrderDto>.Ok(result, "Pedido creado correctamente."));
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, ApiResponse<OrderDto>.Ok(result, "Pedido creado correctamente."));
     }
 
     [HttpPatch("{id}/status")]
