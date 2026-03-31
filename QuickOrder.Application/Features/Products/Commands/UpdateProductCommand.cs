@@ -20,6 +20,6 @@ public class UpdateProductCommandHandler(
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new ProductDto(product.Id, product.Name, product.Description);
+        return new ProductDto(product.Id, product.Name, product.Description, product.ImageUrl);
     }
 }

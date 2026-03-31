@@ -11,7 +11,7 @@ public record CreateMenuRequest(string Name);
 public record UpdateMenuRequest(string? Name, bool? IsActive);
 
 // Products
-public record ProductDto(int Id, string Name, string? Description);
+public record ProductDto(int Id, string Name, string? Description, string? ImageUrl);
 public record CreateProductRequest(string Name, string? Description);
 public record UpdateProductRequest(string? Name, string? Description);
 

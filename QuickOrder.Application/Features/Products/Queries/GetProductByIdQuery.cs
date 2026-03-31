@@ -13,6 +13,6 @@ public class GetProductByIdQueryHandler(IProductRepository productRepository) : 
         var product = await productRepository.FindByIdAsync(request.Id, cancellationToken)
             ?? throw new KeyNotFoundException($"Producto {request.Id} no encontrado.");
 
-        return new ProductDto(product.Id, product.Name, product.Description);
+        return new ProductDto(product.Id, product.Name, product.Description, product.ImageUrl);
     }
 }

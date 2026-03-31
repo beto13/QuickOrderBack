@@ -1,3 +1,4 @@
+using Amazon.S3;
 using Amazon.SQS;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -9,6 +10,7 @@ using QuickOrder.Infrastructure.Messaging;
 using QuickOrder.Infrastructure.Persistence;
 using QuickOrder.Infrastructure.Repositories;
 using QuickOrder.Infrastructure.Settings;
+using QuickOrder.Infrastructure.Storage;
 
 namespace QuickOrder.Infrastructure;
 
@@ -32,6 +34,15 @@ public static class DependencyInjection
         services.AddScoped<IModifierRepository, ModifierRepository>();
 
         services.AddScoped<IOrderHub, OrderHubService>();
+
+        services.Configure<S3Options>(configuration.GetSection(S3Options.SectionName));
+        services.AddSingleton<IAmazonS3>(sp =>
+        {
+            var opts = sp.GetRequiredService<IOptions<S3Options>>().Value;
+            var region = Amazon.RegionEndpoint.GetBySystemName(opts.Region);
+            return new AmazonS3Client(region);
+        });
+        services.AddScoped<IStorageService, S3StorageService>();
 
         services.Configure<SqsOptions>(configuration.GetSection(SqsOptions.SectionName));
         services.AddSingleton<IAmazonSQS>(sp =>

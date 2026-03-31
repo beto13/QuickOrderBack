@@ -26,6 +26,8 @@ services:
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-quickorder};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}"
       Sqs__Region: "${SQS_REGION:-us-east-1}"
       Sqs__QueueUrl: "${SQS_QUEUE_URL}"
+      S3__BucketName: "${S3_BUCKET_NAME}"
+      S3__Region: "${S3_REGION:-us-east-1}"
     depends_on:
       postgres:
         condition: service_healthy

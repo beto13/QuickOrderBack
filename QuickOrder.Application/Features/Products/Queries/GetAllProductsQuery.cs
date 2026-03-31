@@ -13,7 +13,7 @@ public class GetAllProductsQueryHandler(IProductRepository productRepository) : 
     {
         var (items, total) = await productRepository.GetPagedAsync(request.PageNumber, request.PageSize, cancellationToken);
 
-        var dtos = items.Select(p => new ProductDto(p.Id, p.Name, p.Description)).ToList();
+        var dtos = items.Select(p => new ProductDto(p.Id, p.Name, p.Description, p.ImageUrl)).ToList();
 
         return PaginatedResponse<ProductDto>.Create(dtos, total, request.PageNumber, request.PageSize);
     }
