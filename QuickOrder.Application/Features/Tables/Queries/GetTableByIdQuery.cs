@@ -13,6 +13,6 @@ public class GetTableByIdQueryHandler(ITableRepository tableRepository) : IReque
         var table = await tableRepository.FindByIdAsync(request.Id, cancellationToken)
             ?? throw new KeyNotFoundException($"Mesa {request.Id} no encontrada.");
 
-        return new TableDto(table.Id, table.Number, table.IsActive);
+        return new TableDto(table.Id, table.Number, table.IsActive, table.MenuId);
     }
 }

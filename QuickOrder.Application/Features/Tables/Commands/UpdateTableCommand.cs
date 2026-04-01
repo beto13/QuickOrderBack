@@ -4,7 +4,7 @@ using QuickOrder.Application.Interfaces;
 
 namespace QuickOrder.Application.Features.Tables.Commands;
 
-public record UpdateTableCommand(int Id, string? Number, bool? IsActive) : IRequest<TableDto>;
+public record UpdateTableCommand(int Id, string? Number, bool? IsActive, int? MenuId) : IRequest<TableDto>;
 
 public class UpdateTableCommandHandler(
     ITableRepository tableRepository,
@@ -17,9 +17,10 @@ public class UpdateTableCommandHandler(
 
         if (request.Number is not null) table.Number = request.Number;
         if (request.IsActive.HasValue) table.IsActive = request.IsActive.Value;
+        if (request.MenuId.HasValue) table.MenuId = request.MenuId.Value;
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new TableDto(table.Id, table.Number, table.IsActive);
+        return new TableDto(table.Id, table.Number, table.IsActive, table.MenuId);
     }
 }

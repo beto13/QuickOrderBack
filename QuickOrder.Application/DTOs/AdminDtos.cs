@@ -1,9 +1,9 @@
 namespace QuickOrder.Application.DTOs;
 
 // Tables
-public record TableDto(int Id, string Number, bool IsActive);
-public record CreateTableRequest(string Number);
-public record UpdateTableRequest(string? Number, bool? IsActive);
+public record TableDto(int Id, string Number, bool IsActive, int MenuId);
+public record CreateTableRequest(string Number, int MenuId);
+public record UpdateTableRequest(string? Number, bool? IsActive, int? MenuId);
 
 // Menus
 public record MenuDto(int Id, string Name, bool IsActive);

@@ -21,6 +21,13 @@ public class TablesController(IMediator mediator) : ControllerBase
         return Ok(ApiResponse<PaginatedResponse<TableDto>>.Ok(result));
     }
 
+    [HttpGet("by-number/{number}")]
+    public async Task<ActionResult<ApiResponse<TableDto>>> GetByNumber(string number, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new GetTableByNumberQuery(number), cancellationToken);
+        return Ok(ApiResponse<TableDto>.Ok(result));
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<ApiResponse<TableDto>>> GetById(int id, CancellationToken cancellationToken)
     {
@@ -31,14 +38,14 @@ public class TablesController(IMediator mediator) : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ApiResponse<TableDto>>> Create([FromBody] CreateTableRequest request, CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new CreateTableCommand(request.Number), cancellationToken);
+        var result = await mediator.Send(new CreateTableCommand(request.Number, request.MenuId), cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, ApiResponse<TableDto>.Ok(result, "Mesa creada correctamente."));
     }
 
     [HttpPut("{id}")]
     public async Task<ActionResult<ApiResponse<TableDto>>> Update(int id, [FromBody] UpdateTableRequest request, CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new UpdateTableCommand(id, request.Number, request.IsActive), cancellationToken);
+        var result = await mediator.Send(new UpdateTableCommand(id, request.Number, request.IsActive, request.MenuId), cancellationToken);
         return Ok(ApiResponse<TableDto>.Ok(result, "Mesa actualizada correctamente."));
     }
 

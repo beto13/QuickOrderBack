@@ -21,5 +21,8 @@ public class TableRepository(AppDbContext db) : ITableRepository
     public Task<Table?> FindByIdAsync(int id, CancellationToken cancellationToken = default) =>
         db.Tables.FindAsync([id], cancellationToken).AsTask();
 
+    public Task<Table?> FindByNumberAsync(string number, CancellationToken cancellationToken = default) =>
+        db.Tables.AsNoTracking().FirstOrDefaultAsync(t => t.Number == number && t.IsActive, cancellationToken);
+
     public void Add(Table table) => db.Tables.Add(table);
 }

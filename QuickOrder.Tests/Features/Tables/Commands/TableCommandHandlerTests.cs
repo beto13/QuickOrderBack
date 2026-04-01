@@ -15,7 +15,7 @@ public class TableCommandHandlerTests
         uow.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var result = await new CreateTableCommandHandler(repo.Object, uow.Object)
-            .Handle(new CreateTableCommand("5"), CancellationToken.None);
+            .Handle(new CreateTableCommand("5", 1), CancellationToken.None);
 
         Assert.Equal("5", result.Number);
         Assert.True(result.IsActive);
@@ -32,7 +32,7 @@ public class TableCommandHandlerTests
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
             new UpdateTableCommandHandler(repo.Object, Mock.Of<IUnitOfWork>())
-                .Handle(new UpdateTableCommand(99, null, null), CancellationToken.None));
+                .Handle(new UpdateTableCommand(99, null, null, null), CancellationToken.None));
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class TableCommandHandlerTests
         uow.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var result = await new UpdateTableCommandHandler(repo.Object, uow.Object)
-            .Handle(new UpdateTableCommand(1, "10", null), CancellationToken.None);
+            .Handle(new UpdateTableCommand(1, "10", null, null), CancellationToken.None);
 
         Assert.Equal("10", result.Number);
         Assert.True(result.IsActive);

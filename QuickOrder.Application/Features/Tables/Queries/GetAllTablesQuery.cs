@@ -13,7 +13,7 @@ public class GetAllTablesQueryHandler(ITableRepository tableRepository) : IReque
     {
         var (items, total) = await tableRepository.GetPagedAsync(request.PageNumber, request.PageSize, cancellationToken);
 
-        var dtos = items.Select(t => new TableDto(t.Id, t.Number, t.IsActive)).ToList();
+        var dtos = items.Select(t => new TableDto(t.Id, t.Number, t.IsActive, t.MenuId)).ToList();
 
         return PaginatedResponse<TableDto>.Create(dtos, total, request.PageNumber, request.PageSize);
     }
