@@ -10,7 +10,7 @@ namespace QuickOrder.Api.Controllers;
 public class MenuController(IMediator mediator) : ControllerBase
 {
     [HttpGet("{menuId:int}")]
-    public async Task<ActionResult<ApiResponse<List<MenuCategoryDto>>>> GetMenu(int menuId, CancellationToken cancellationToken)
+    public async Task<ActionResult<ApiResponse<List<MenuCategoryDto>>>> Get(int menuId, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetMenuQuery(menuId), cancellationToken);
         return Ok(ApiResponse<List<MenuCategoryDto>>.Ok(result));

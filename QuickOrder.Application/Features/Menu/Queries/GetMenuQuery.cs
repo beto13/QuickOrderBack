@@ -6,7 +6,8 @@ namespace QuickOrder.Application.Features.Menu.Queries;
 
 public record GetMenuQuery(int MenuId) : IRequest<List<MenuCategoryDto>>;
 
-public record MenuCategoryDto(int Id, string Name, int DisplayOrder, List<MenuProductDto> Products);
+public record MenuItemDto(int Id, string Name, string? Description, string? ImageUrl, decimal Price, int CategoryId, string CategoryName);
+public record MenuCategoryDto(int Id, string Name, int DisplayOrder, List<MenuItemDto> Products);
 
 public class GetMenuQueryHandler(ICategoryRepository categoryRepository) : IRequestHandler<GetMenuQuery, List<MenuCategoryDto>>
 {
@@ -20,7 +21,14 @@ public class GetMenuQueryHandler(ICategoryRepository categoryRepository) : IRequ
             c.DisplayOrder,
             c.MenuProducts
                 .Where(mp => mp.IsAvailable)
-                .Select(mp => new MenuProductDto(mp.Id, mp.Product.Name, mp.Product.Description, mp.Price, c.Id, c.Name))
+                .Select(mp => new MenuItemDto(
+                    mp.Id,
+                    mp.Product.Name,
+                    mp.Product.Description,
+                    mp.Product.ImageUrl,
+                    mp.Price,
+                    c.Id,
+                    c.Name))
                 .ToList()
         )).ToList();
     }
