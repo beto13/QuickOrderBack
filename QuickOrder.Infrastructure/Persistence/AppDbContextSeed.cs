@@ -72,50 +72,47 @@ public static class AppDbContextSeed
             new Modifier { Name = "Bien cocida",    ModifierGroup = coccionGroupDoble },
             new Modifier { Name = "Jugosa",         ModifierGroup = coccionGroupDoble },
         };
-        var extrasOpts = new[]
-        {
-            new Modifier { Name = "Queso extra",    ModifierGroup = extrasGroup },
-            new Modifier { Name = "Huevo frito",    ModifierGroup = extrasGroup },
-            new Modifier { Name = "Panceta",        ModifierGroup = extrasGroup },
-            new Modifier { Name = "Cheddar",        ModifierGroup = extrasGroup },
-        };
+        var queso  = new Modifier { Name = "Queso extra", ModifierGroup = extrasGroup };
+        var huevo  = new Modifier { Name = "Huevo frito", ModifierGroup = extrasGroup };
+        var panceta = new Modifier { Name = "Panceta",   ModifierGroup = extrasGroup };
+        var cheddar = new Modifier { Name = "Cheddar",   ModifierGroup = extrasGroup };
         db.Modifiers.AddRange(coccionOpts);
-        db.Modifiers.AddRange(extrasOpts);
+        db.Modifiers.AddRange(queso, huevo, panceta, cheddar);
 
         // Menus
         var salon  = new Menu { Name = "Salón",  IsActive = true };
         var vereda = new Menu { Name = "Vereda", IsActive = true };
         db.Menus.AddRange(salon, vereda);
 
-        // MenuProducts — Salón: full menu
-        var salonProducts = new[]
-        {
-            new MenuProduct { Menu = salon, Product = agua,      Category = bebidas,    Price = 500 },
-            new MenuProduct { Menu = salon, Product = aguaGas,   Category = bebidas,    Price = 500 },
-            new MenuProduct { Menu = salon, Product = gaseosa,   Category = bebidas,    Price = 700 },
-            new MenuProduct { Menu = salon, Product = jugo,      Category = bebidas,    Price = 900 },
-            new MenuProduct { Menu = salon, Product = cerPorron, Category = cervezas,   Price = 1200 },
-            new MenuProduct { Menu = salon, Product = cerLitron, Category = cervezas,   Price = 2200 },
-            new MenuProduct { Menu = salon, Product = cerRubia,  Category = cervezas,   Price = 1800 },
-            new MenuProduct { Menu = salon, Product = cerNegra,  Category = cervezas,   Price = 1900 },
-            new MenuProduct { Menu = salon, Product = fernet,    Category = tragos,     Price = 1500 },
-            new MenuProduct { Menu = salon, Product = ginTonic,  Category = tragos,     Price = 1800 },
-            new MenuProduct { Menu = salon, Product = aperol,    Category = tragos,     Price = 2000 },
-            new MenuProduct { Menu = salon, Product = campari,   Category = tragos,     Price = 1700 },
-            new MenuProduct { Menu = salon, Product = mojito,    Category = tragos,     Price = 2100 },
-            new MenuProduct { Menu = salon, Product = picChica,  Category = picadas,    Price = 3500 },
-            new MenuProduct { Menu = salon, Product = picGrande, Category = picadas,    Price = 5500 },
-            new MenuProduct { Menu = salon, Product = papas,     Category = picadas,    Price = 1200 },
-            new MenuProduct { Menu = salon, Product = tostadas,  Category = picadas,    Price = 900 },
-            new MenuProduct { Menu = salon, Product = lomito,    Category = sandwiches, Price = 2800 },
-            new MenuProduct { Menu = salon, Product = lomitoComp,Category = sandwiches, Price = 3500 },
-            new MenuProduct { Menu = salon, Product = hambSimple,Category = sandwiches, Price = 2500 },
-            new MenuProduct { Menu = salon, Product = hambDoble, Category = sandwiches, Price = 3800 },
-        };
+        // MenuProducts — Salón: full menu (sandwiches named for MenuModifier references)
+        var mpLomito     = new MenuProduct { Menu = salon, Product = lomito,     Category = sandwiches, Price = 2800 };
+        var mpLomitoComp = new MenuProduct { Menu = salon, Product = lomitoComp, Category = sandwiches, Price = 3500 };
+        var mpHambSimple = new MenuProduct { Menu = salon, Product = hambSimple, Category = sandwiches, Price = 2500 };
+        var mpHambDoble  = new MenuProduct { Menu = salon, Product = hambDoble,  Category = sandwiches, Price = 3800 };
+
+        db.MenuProducts.AddRange(
+            new MenuProduct { Menu = salon, Product = agua,      Category = bebidas,  Price = 500 },
+            new MenuProduct { Menu = salon, Product = aguaGas,   Category = bebidas,  Price = 500 },
+            new MenuProduct { Menu = salon, Product = gaseosa,   Category = bebidas,  Price = 700 },
+            new MenuProduct { Menu = salon, Product = jugo,      Category = bebidas,  Price = 900 },
+            new MenuProduct { Menu = salon, Product = cerPorron, Category = cervezas, Price = 1200 },
+            new MenuProduct { Menu = salon, Product = cerLitron, Category = cervezas, Price = 2200 },
+            new MenuProduct { Menu = salon, Product = cerRubia,  Category = cervezas, Price = 1800 },
+            new MenuProduct { Menu = salon, Product = cerNegra,  Category = cervezas, Price = 1900 },
+            new MenuProduct { Menu = salon, Product = fernet,    Category = tragos,   Price = 1500 },
+            new MenuProduct { Menu = salon, Product = ginTonic,  Category = tragos,   Price = 1800 },
+            new MenuProduct { Menu = salon, Product = aperol,    Category = tragos,   Price = 2000 },
+            new MenuProduct { Menu = salon, Product = campari,   Category = tragos,   Price = 1700 },
+            new MenuProduct { Menu = salon, Product = mojito,    Category = tragos,   Price = 2100 },
+            new MenuProduct { Menu = salon, Product = picChica,  Category = picadas,  Price = 3500 },
+            new MenuProduct { Menu = salon, Product = picGrande, Category = picadas,  Price = 5500 },
+            new MenuProduct { Menu = salon, Product = papas,     Category = picadas,  Price = 1200 },
+            new MenuProduct { Menu = salon, Product = tostadas,  Category = picadas,  Price = 900 },
+            mpLomito, mpLomitoComp, mpHambSimple, mpHambDoble
+        );
 
         // MenuProducts — Vereda: only drinks and snacks, slightly higher price
-        var veredaProducts = new[]
-        {
+        db.MenuProducts.AddRange(
             new MenuProduct { Menu = vereda, Product = agua,      Category = bebidas,  Price = 550 },
             new MenuProduct { Menu = vereda, Product = aguaGas,   Category = bebidas,  Price = 550 },
             new MenuProduct { Menu = vereda, Product = gaseosa,   Category = bebidas,  Price = 750 },
@@ -123,17 +120,42 @@ public static class AppDbContextSeed
             new MenuProduct { Menu = vereda, Product = cerLitron, Category = cervezas, Price = 2300 },
             new MenuProduct { Menu = vereda, Product = fernet,    Category = tragos,   Price = 1600 },
             new MenuProduct { Menu = vereda, Product = aperol,    Category = tragos,   Price = 2100 },
-            new MenuProduct { Menu = vereda, Product = papas,     Category = picadas,  Price = 1300 },
-        };
+            new MenuProduct { Menu = vereda, Product = papas,     Category = picadas,  Price = 1300 }
+        );
 
-        db.MenuProducts.AddRange(salonProducts);
-        db.MenuProducts.AddRange(veredaProducts);
+        // MenuModifiers — cocción (hambSimple y hambDoble, sin costo extra)
+        var (apt1, bien1, jug1, apt2, bien2, jug2) = (
+            coccionOpts[0], coccionOpts[1], coccionOpts[2],
+            coccionOpts[3], coccionOpts[4], coccionOpts[5]);
 
-        // Tables
+        db.MenuModifiers.AddRange(
+            new MenuModifier { MenuProduct = mpHambSimple, Modifier = apt1,  ExtraPrice = 0 },
+            new MenuModifier { MenuProduct = mpHambSimple, Modifier = bien1, ExtraPrice = 0 },
+            new MenuModifier { MenuProduct = mpHambSimple, Modifier = jug1,  ExtraPrice = 0 },
+            new MenuModifier { MenuProduct = mpHambDoble,  Modifier = apt2,  ExtraPrice = 0 },
+            new MenuModifier { MenuProduct = mpHambDoble,  Modifier = bien2, ExtraPrice = 0 },
+            new MenuModifier { MenuProduct = mpHambDoble,  Modifier = jug2,  ExtraPrice = 0 }
+        );
+
+        // MenuModifiers — extras (todos los sándwiches, con precio)
+        foreach (var mp in new[] { mpLomito, mpLomitoComp, mpHambSimple, mpHambDoble })
+        {
+            db.MenuModifiers.AddRange(
+                new MenuModifier { MenuProduct = mp, Modifier = queso,  ExtraPrice = 300 },
+                new MenuModifier { MenuProduct = mp, Modifier = huevo,  ExtraPrice = 400 },
+                new MenuModifier { MenuProduct = mp, Modifier = panceta, ExtraPrice = 500 },
+                new MenuModifier { MenuProduct = mp, Modifier = cheddar, ExtraPrice = 350 }
+            );
+        }
+
+        // Tables — 1-5 Salón, 6-10 Vereda
         if (!await db.Tables.AnyAsync())
         {
             db.Tables.AddRange(
-                Enumerable.Range(1, 10).Select(i => new Table { Number = i.ToString(), IsActive = true })
+                Enumerable.Range(1, 5).Select(i => new Table { Number = i.ToString(), IsActive = true, Menu = salon })
+            );
+            db.Tables.AddRange(
+                Enumerable.Range(6, 5).Select(i => new Table { Number = i.ToString(), IsActive = true, Menu = vereda })
             );
         }
 
