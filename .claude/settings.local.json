@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout:*)",
+      "Bash(git pull:*)",
+      "Bash(xargs grep:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet test:*)",
+      "Bash(python3 -c \"import zipfile, sys; z = zipfile.ZipFile\\('C:/Users/engue/.claude/skills/dotnet-senior.skill'\\); print\\(z.namelist\\(\\)\\)\")",
+      "Bash(python -c \"import zipfile; z = zipfile.ZipFile\\('C:/Users/engue/.claude/skills/dotnet-senior.skill'\\); print\\(z.namelist\\(\\)\\)\")",
+      "Bash(powershell:*)",
+      "Skill(review)",
+      "Bash(grep:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}

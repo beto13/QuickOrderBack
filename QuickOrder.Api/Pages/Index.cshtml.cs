@@ -11,6 +11,8 @@ public class IndexModel(IMediator mediator) : PageModel
 
     public async Task OnGetAsync()
     {
-        Orders = await mediator.Send(new GetActiveOrdersQuery());
+        var result = await mediator.Send(new GetActiveOrdersQuery());
+        if (result.IsSuccess)
+            Orders = result.Value!;
     }
 }

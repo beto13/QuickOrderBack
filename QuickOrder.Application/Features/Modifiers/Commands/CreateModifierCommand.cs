@@ -1,21 +1,23 @@
 using MediatR;
+using QuickOrder.Application.Common;
 using QuickOrder.Application.DTOs;
 using QuickOrder.Application.Interfaces;
 using QuickOrder.Domain.Entities;
 
 namespace QuickOrder.Application.Features.Modifiers.Commands;
 
-public record CreateModifierCommand(int ModifierGroupId, string Name, string? Description) : IRequest<ModifierDto>;
+public record CreateModifierCommand(int ModifierGroupId, string Name, string? Description) : IRequest<Result<ModifierDto>>;
 
 public class CreateModifierCommandHandler(
     IModifierGroupRepository modifierGroupRepository,
     IModifierRepository modifierRepository,
-    IUnitOfWork unitOfWork) : IRequestHandler<CreateModifierCommand, ModifierDto>
+    IUnitOfWork unitOfWork) : IRequestHandler<CreateModifierCommand, Result<ModifierDto>>
 {
-    public async Task<ModifierDto> Handle(CreateModifierCommand request, CancellationToken cancellationToken)
+    public async Task<Result<ModifierDto>> Handle(CreateModifierCommand request, CancellationToken cancellationToken)
     {
-        _ = await modifierGroupRepository.FindByIdAsync(request.ModifierGroupId, cancellationToken)
-            ?? throw new KeyNotFoundException($"Grupo de modificadores {request.ModifierGroupId} no encontrado.");
+        var group = await modifierGroupRepository.FindByIdAsync(request.ModifierGroupId, cancellationToken);
+        if (group is null)
+            return Result<ModifierDto>.Fail(Error.NotFound($"Grupo de modificadores {request.ModifierGroupId} no encontrado."));
 
         var modifier = new Modifier
         {
@@ -27,6 +29,6 @@ public class CreateModifierCommandHandler(
         modifierRepository.Add(modifier);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new ModifierDto(modifier.Id, modifier.ModifierGroupId, modifier.Name, modifier.Description);
+        return Result<ModifierDto>.Ok(new ModifierDto(modifier.Id, modifier.ModifierGroupId, modifier.Name, modifier.Description));
     }
 }

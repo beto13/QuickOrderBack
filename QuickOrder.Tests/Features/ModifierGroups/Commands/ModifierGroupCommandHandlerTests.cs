@@ -17,24 +17,27 @@ public class ModifierGroupCommandHandlerTests
         var result = await new CreateModifierGroupCommandHandler(repo.Object, uow.Object)
             .Handle(new CreateModifierGroupCommand("Cocción", 1, 1, true, null, null), CancellationToken.None);
 
-        Assert.Equal("Cocción", result.Name);
-        Assert.Equal(1, result.MinSelections);
-        Assert.Equal(1, result.MaxSelections);
-        Assert.True(result.IsRequired);
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Cocción", result.Value!.Name);
+        Assert.Equal(1, result.Value!.MinSelections);
+        Assert.Equal(1, result.Value!.MaxSelections);
+        Assert.True(result.Value!.IsRequired);
         repo.Verify(r => r.Add(It.IsAny<ModifierGroup>()), Times.Once);
         uow.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task UpdateModifierGroup_GroupNotFound_ThrowsKeyNotFoundException()
+    public async Task UpdateModifierGroup_GroupNotFound_ReturnsNotFoundError()
     {
         var repo = new Mock<IModifierGroupRepository>();
         repo.Setup(r => r.FindByIdAsync(99, It.IsAny<CancellationToken>()))
             .ReturnsAsync((ModifierGroup?)null);
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            new UpdateModifierGroupCommandHandler(repo.Object, Mock.Of<IUnitOfWork>())
-                .Handle(new UpdateModifierGroupCommand(99, null, null, null, null), CancellationToken.None));
+        var result = await new UpdateModifierGroupCommandHandler(repo.Object, Mock.Of<IUnitOfWork>())
+            .Handle(new UpdateModifierGroupCommand(99, null, null, null, null), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("NOT_FOUND", result.Error.Code);
     }
 
     [Fact]
@@ -50,22 +53,25 @@ public class ModifierGroupCommandHandlerTests
         var result = await new UpdateModifierGroupCommandHandler(repo.Object, uow.Object)
             .Handle(new UpdateModifierGroupCommand(1, "Nuevo nombre", null, null, null), CancellationToken.None);
 
-        Assert.Equal("Nuevo nombre", result.Name);
-        Assert.Equal(0, result.MinSelections);
-        Assert.Equal(2, result.MaxSelections);
-        Assert.False(result.IsRequired);
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Nuevo nombre", result.Value!.Name);
+        Assert.Equal(0, result.Value!.MinSelections);
+        Assert.Equal(2, result.Value!.MaxSelections);
+        Assert.False(result.Value!.IsRequired);
     }
 
     [Fact]
-    public async Task DeleteModifierGroup_GroupNotFound_ThrowsKeyNotFoundException()
+    public async Task DeleteModifierGroup_GroupNotFound_ReturnsNotFoundError()
     {
         var repo = new Mock<IModifierGroupRepository>();
         repo.Setup(r => r.FindByIdAsync(99, It.IsAny<CancellationToken>()))
             .ReturnsAsync((ModifierGroup?)null);
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            new DeleteModifierGroupCommandHandler(repo.Object, Mock.Of<IUnitOfWork>())
-                .Handle(new DeleteModifierGroupCommand(99), CancellationToken.None));
+        var result = await new DeleteModifierGroupCommandHandler(repo.Object, Mock.Of<IUnitOfWork>())
+            .Handle(new DeleteModifierGroupCommand(99), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("NOT_FOUND", result.Error.Code);
     }
 
     [Fact]
@@ -78,9 +84,10 @@ public class ModifierGroupCommandHandlerTests
         var uow = new Mock<IUnitOfWork>();
         uow.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
-        await new DeleteModifierGroupCommandHandler(repo.Object, uow.Object)
+        var result = await new DeleteModifierGroupCommandHandler(repo.Object, uow.Object)
             .Handle(new DeleteModifierGroupCommand(1), CancellationToken.None);
 
+        Assert.True(result.IsSuccess);
         repo.Verify(r => r.Remove(group), Times.Once);
         uow.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }

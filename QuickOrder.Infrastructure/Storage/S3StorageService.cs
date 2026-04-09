@@ -18,7 +18,6 @@ public class S3StorageService(IAmazonS3 s3Client, IOptions<S3Options> options) :
             Key = key,
             InputStream = content,
             ContentType = contentType,
-            CannedACL = S3CannedACL.PublicRead
         };
 
         await s3Client.PutObjectAsync(request, cancellationToken);

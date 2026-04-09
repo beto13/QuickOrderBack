@@ -25,8 +25,9 @@ public class UpdateOrderStatusCommandHandlerTests
         _hub.Setup(h => h.NotifyOrderStatusChanged(It.IsAny<int>(), It.IsAny<string>()))
             .Returns(Task.CompletedTask);
 
-        await CreateHandler().Handle(new UpdateOrderStatusCommand(1, "InPreparation"), CancellationToken.None);
+        var result = await CreateHandler().Handle(new UpdateOrderStatusCommand(1, "InPreparation"), CancellationToken.None);
 
+        Assert.True(result.IsSuccess);
         Assert.Equal(OrderStatus.InPreparation, order.Status);
         _orderRepo.Verify(r => r.AddStatusHistory(It.Is<OrderStatusHistory>(h =>
             h.OrderId == 1 &&
@@ -37,27 +38,29 @@ public class UpdateOrderStatusCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_OrderNotFound_ThrowsKeyNotFoundException()
+    public async Task Handle_OrderNotFound_ReturnsNotFoundError()
     {
         _orderRepo.Setup(r => r.FindByIdAsync(99, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Order?)null);
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            CreateHandler().Handle(new UpdateOrderStatusCommand(99, "Ready"), CancellationToken.None));
+        var result = await CreateHandler().Handle(new UpdateOrderStatusCommand(99, "Ready"), CancellationToken.None);
 
+        Assert.True(result.IsFailure);
+        Assert.Equal("NOT_FOUND", result.Error.Code);
         _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task Handle_InvalidStatus_ThrowsArgumentException()
+    public async Task Handle_InvalidStatus_ReturnsValidationError()
     {
         var order = new Order { Id = 1, Status = OrderStatus.Pending };
         _orderRepo.Setup(r => r.FindByIdAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(order);
 
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            CreateHandler().Handle(new UpdateOrderStatusCommand(1, "EstadoInvalido"), CancellationToken.None));
+        var result = await CreateHandler().Handle(new UpdateOrderStatusCommand(1, "EstadoInvalido"), CancellationToken.None);
 
+        Assert.True(result.IsFailure);
+        Assert.Equal("VALIDATION_ERROR", result.Error.Code);
         _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }

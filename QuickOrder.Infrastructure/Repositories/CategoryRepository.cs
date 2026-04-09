@@ -11,8 +11,11 @@ public class CategoryRepository(AppDbContext db) : ICategoryRepository
         db.Categories
             .Include(c => c.MenuProducts.Where(mp => mp.MenuId == menuId && mp.IsAvailable))
                 .ThenInclude(mp => mp.Product)
+            .Include(c => c.MenuProducts.Where(mp => mp.MenuId == menuId && mp.IsAvailable))
+                .ThenInclude(mp => mp.MenuModifiers.Where(mm => mm.IsAvailable))
             .Where(c => c.MenuProducts.Any(mp => mp.MenuId == menuId && mp.IsAvailable))
             .OrderBy(c => c.DisplayOrder)
+            .AsSplitQuery()
             .ToListAsync(cancellationToken);
 
     public async Task<(List<Category> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)

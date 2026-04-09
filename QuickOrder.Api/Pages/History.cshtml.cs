@@ -12,6 +12,8 @@ public class HistoryModel(IMediator mediator) : PageModel
 
     public async Task OnGetAsync(int pageNumber = 1, int pageSize = 20)
     {
-        Orders = await mediator.Send(new GetOrderHistoryQuery(pageNumber, pageSize));
+        var result = await mediator.Send(new GetOrderHistoryQuery(pageNumber, pageSize));
+        if (result.IsSuccess)
+            Orders = result.Value!;
     }
 }

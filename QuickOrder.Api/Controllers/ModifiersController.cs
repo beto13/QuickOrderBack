@@ -7,12 +7,11 @@ using QuickOrder.Application.Features.Modifiers.Queries;
 
 namespace QuickOrder.Api.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
-public class ModifiersController(IMediator mediator) : ControllerBase
+public class ModifiersController(IMediator mediator) : ApiController
 {
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<PaginatedResponse<ModifierDto>>>> GetAll(
+    public async Task<IActionResult> GetAll(
         [FromQuery] int? modifierGroupId,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 20,
@@ -21,34 +20,35 @@ public class ModifiersController(IMediator mediator) : ControllerBase
         var result = modifierGroupId.HasValue
             ? await mediator.Send(new GetModifiersByGroupQuery(modifierGroupId.Value, pageNumber, pageSize), cancellationToken)
             : await mediator.Send(new GetAllModifiersQuery(pageNumber, pageSize), cancellationToken);
-        return Ok(ApiResponse<PaginatedResponse<ModifierDto>>.Ok(result));
+        return ToResponse(result);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<ApiResponse<ModifierDto>>> GetById(int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetModifierByIdQuery(id), cancellationToken);
-        return Ok(ApiResponse<ModifierDto>.Ok(result));
+        return ToResponse(result);
     }
 
     [HttpPost]
-    public async Task<ActionResult<ApiResponse<ModifierDto>>> Create([FromBody] CreateModifierRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Create([FromBody] CreateModifierRequest request, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new CreateModifierCommand(request.ModifierGroupId, request.Name, request.Description), cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = result.Id }, ApiResponse<ModifierDto>.Ok(result, "Modificador creado correctamente."));
+        if (result.IsFailure) return ToResponse(result);
+        return CreatedAtAction(nameof(GetById), new { id = result.Value!.Id }, ApiResponse<ModifierDto>.Ok(result.Value!, "Modificador creado correctamente."));
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<ApiResponse<ModifierDto>>> Update(int id, [FromBody] UpdateModifierRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateModifierRequest request, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new UpdateModifierCommand(id, request.Name, request.Description), cancellationToken);
-        return Ok(ApiResponse<ModifierDto>.Ok(result, "Modificador actualizado correctamente."));
+        return ToResponse(result, "Modificador actualizado correctamente.");
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult<ApiResponse<object>>> Delete(int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
-        await mediator.Send(new DeleteModifierCommand(id), cancellationToken);
-        return Ok(ApiResponse<object>.Ok(new { }, "Modificador eliminado correctamente."));
+        var result = await mediator.Send(new DeleteModifierCommand(id), cancellationToken);
+        return ToResponse(result, "Modificador eliminado correctamente.");
     }
 }

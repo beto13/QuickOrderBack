@@ -35,13 +35,14 @@ public class GetActiveOrdersQueryHandlerTests
         var result = await new GetActiveOrdersQueryHandler(orderRepo.Object)
             .Handle(new GetActiveOrdersQuery(), CancellationToken.None);
 
-        Assert.Single(result);
-        Assert.Equal(1, result[0].Id);
-        Assert.Equal("3", result[0].TableNumber);
-        Assert.Equal("Salón", result[0].MenuName);
-        Assert.Equal("Pending", result[0].Status);
-        Assert.Equal(800m, result[0].Items[0].UnitPrice);
-        Assert.Equal(2, result[0].Items[0].Quantity);
+        Assert.True(result.IsSuccess);
+        Assert.Single(result.Value!);
+        Assert.Equal(1, result.Value![0].Id);
+        Assert.Equal("3", result.Value![0].TableNumber);
+        Assert.Equal("Salón", result.Value![0].MenuName);
+        Assert.Equal("Pending", result.Value![0].Status);
+        Assert.Equal(800m, result.Value![0].Items[0].UnitPrice);
+        Assert.Equal(2, result.Value![0].Items[0].Quantity);
     }
 
     [Fact]
@@ -54,6 +55,7 @@ public class GetActiveOrdersQueryHandlerTests
         var result = await new GetActiveOrdersQueryHandler(orderRepo.Object)
             .Handle(new GetActiveOrdersQuery(), CancellationToken.None);
 
-        Assert.Empty(result);
+        Assert.True(result.IsSuccess);
+        Assert.Empty(result.Value!);
     }
 }
