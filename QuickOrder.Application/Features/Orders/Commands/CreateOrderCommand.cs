@@ -24,29 +24,40 @@ public class CreateOrderCommandHandler(
         var menuProducts = await menuProductRepository.GetByIdsAsync(
             request.Items.Select(i => i.MenuProductId), cancellationToken);
 
+        var orderItems = new List<OrderItem>();
+        foreach (var item in request.Items)
+        {
+            if (!menuProducts.TryGetValue(item.MenuProductId, out var menuProduct))
+                throw new KeyNotFoundException($"Producto de menú {item.MenuProductId} no disponible.");
+
+            orderItems.Add(new OrderItem
+            {
+                MenuProductId = item.MenuProductId,
+                Quantity = item.Quantity,
+                UnitPrice = menuProduct.Price,
+                Notes = item.Notes
+            });
+        }
+
         var order = new Order
         {
             TableId = request.TableId,
             MenuId = request.MenuId,
             Notes = request.Notes,
-            Items = request.Items.Select(i => new OrderItem
-            {
-                MenuProductId = i.MenuProductId,
-                Quantity = i.Quantity,
-                UnitPrice = menuProducts[i.MenuProductId].Price,
-                Notes = i.Notes
-            }).ToList()
+            Items = orderItems
         };
 
         orderRepository.Add(order);
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        var menuName = menuProducts.Values.FirstOrDefault()?.Menu?.Name ?? string.Empty;
 
         var dto = new OrderDto(
             order.Id,
             table.Id,
             table.Number,
             request.MenuId,
-            menuProducts.Values.First().Menu?.Name ?? string.Empty,
+            menuName,
             order.Status.ToString(),
             order.Notes,
             order.CreatedAt,

@@ -21,6 +21,7 @@ public class OrderRepository(AppDbContext db) : IOrderRepository
 
     public Task<List<Order>> GetActiveAsync(CancellationToken cancellationToken = default) =>
         db.Orders
+            .AsNoTracking()
             .Include(o => o.Table)
             .Include(o => o.Menu)
             .Include(o => o.Items).ThenInclude(i => i.MenuProduct).ThenInclude(mp => mp.Product)
@@ -30,6 +31,7 @@ public class OrderRepository(AppDbContext db) : IOrderRepository
 
     public Task<List<Order>> GetAllAsync(CancellationToken cancellationToken = default) =>
         db.Orders
+            .AsNoTracking()
             .Include(o => o.Table)
             .Include(o => o.Menu)
             .Include(o => o.Items).ThenInclude(i => i.MenuProduct).ThenInclude(mp => mp.Product)
@@ -40,6 +42,7 @@ public class OrderRepository(AppDbContext db) : IOrderRepository
     public async Task<(List<Order> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {
         var query = db.Orders
+            .AsNoTracking()
             .Include(o => o.Table)
             .Include(o => o.Menu)
             .Include(o => o.Items).ThenInclude(i => i.MenuProduct).ThenInclude(mp => mp.Product)

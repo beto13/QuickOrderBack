@@ -9,6 +9,7 @@ public class CategoryRepository(AppDbContext db) : ICategoryRepository
 {
     public Task<List<Category>> GetAllWithMenuProductsAsync(int menuId, CancellationToken cancellationToken = default) =>
         db.Categories
+            .AsNoTracking()
             .Include(c => c.MenuProducts.Where(mp => mp.MenuId == menuId && mp.IsAvailable))
                 .ThenInclude(mp => mp.Product)
             .Where(c => c.MenuProducts.Any(mp => mp.MenuId == menuId && mp.IsAvailable))
