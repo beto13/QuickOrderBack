@@ -11,7 +11,6 @@ public class UpdateProductValidator : AbstractValidator<UpdateProductCommand>
             .GreaterThan(0).WithMessage("El id del producto es requerido.");
 
         RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("El nombre no puede ser vacío.")
             .MaximumLength(200).WithMessage("El nombre no puede superar los 200 caracteres.")
             .When(x => x.Name is not null);
 
