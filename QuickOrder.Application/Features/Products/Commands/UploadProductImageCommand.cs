@@ -1,4 +1,5 @@
 using MediatR;
+using QuickOrder.Application.Common;
 using QuickOrder.Application.Interfaces;
 
 namespace QuickOrder.Application.Features.Products.Commands;
@@ -8,17 +9,18 @@ public record UploadProductImageCommand(
     Stream ImageStream,
     string ContentType,
     string FileName,
-    long FileSize) : IRequest<string>;
+    long FileSize) : IRequest<Result<string>>;
 
 public class UploadProductImageCommandHandler(
     IProductRepository productRepository,
     IStorageService storageService,
-    IUnitOfWork unitOfWork) : IRequestHandler<UploadProductImageCommand, string>
+    IUnitOfWork unitOfWork) : IRequestHandler<UploadProductImageCommand, Result<string>>
 {
-    public async Task<string> Handle(UploadProductImageCommand request, CancellationToken cancellationToken)
+    public async Task<Result<string>> Handle(UploadProductImageCommand request, CancellationToken cancellationToken)
     {
-        var product = await productRepository.FindByIdAsync(request.ProductId, cancellationToken)
-            ?? throw new KeyNotFoundException($"Producto {request.ProductId} no encontrado.");
+        var product = await productRepository.FindByIdAsync(request.ProductId, cancellationToken);
+        if (product is null)
+            return Result<string>.Fail(Error.NotFound($"Producto {request.ProductId} no encontrado."));
 
         if (product.ImageUrl is not null)
         {
@@ -35,7 +37,7 @@ public class UploadProductImageCommandHandler(
         product.ImageUrl = url;
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return url;
+        return Result<string>.Ok(url);
     }
 
     private static string? ExtractKeyFromUrl(string url)

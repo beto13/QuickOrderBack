@@ -21,34 +21,39 @@ public class ModifierCommandHandlerTests
         var result = await new CreateModifierCommandHandler(groupRepo.Object, modifierRepo.Object, uow.Object)
             .Handle(new CreateModifierCommand(1, "A punto", null), CancellationToken.None);
 
-        Assert.Equal("A punto", result.Name);
-        Assert.Equal(1, result.ModifierGroupId);
+        Assert.True(result.IsSuccess);
+        Assert.Equal("A punto", result.Value!.Name);
+        Assert.Equal(1, result.Value!.ModifierGroupId);
         modifierRepo.Verify(r => r.Add(It.IsAny<Modifier>()), Times.Once);
         uow.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task CreateModifier_GroupNotFound_ThrowsKeyNotFoundException()
+    public async Task CreateModifier_GroupNotFound_ReturnsNotFoundError()
     {
         var groupRepo = new Mock<IModifierGroupRepository>();
         groupRepo.Setup(r => r.FindByIdAsync(99, It.IsAny<CancellationToken>()))
             .ReturnsAsync((ModifierGroup?)null);
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            new CreateModifierCommandHandler(groupRepo.Object, Mock.Of<IModifierRepository>(), Mock.Of<IUnitOfWork>())
-                .Handle(new CreateModifierCommand(99, "A punto", null), CancellationToken.None));
+        var result = await new CreateModifierCommandHandler(groupRepo.Object, Mock.Of<IModifierRepository>(), Mock.Of<IUnitOfWork>())
+            .Handle(new CreateModifierCommand(99, "A punto", null), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("NOT_FOUND", result.Error.Code);
     }
 
     [Fact]
-    public async Task UpdateModifier_ModifierNotFound_ThrowsKeyNotFoundException()
+    public async Task UpdateModifier_ModifierNotFound_ReturnsNotFoundError()
     {
         var repo = new Mock<IModifierRepository>();
         repo.Setup(r => r.FindByIdAsync(99, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Modifier?)null);
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            new UpdateModifierCommandHandler(repo.Object, Mock.Of<IUnitOfWork>())
-                .Handle(new UpdateModifierCommand(99, null, null), CancellationToken.None));
+        var result = await new UpdateModifierCommandHandler(repo.Object, Mock.Of<IUnitOfWork>())
+            .Handle(new UpdateModifierCommand(99, null, null), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("NOT_FOUND", result.Error.Code);
     }
 
     [Fact]
@@ -64,20 +69,23 @@ public class ModifierCommandHandlerTests
         var result = await new UpdateModifierCommandHandler(repo.Object, uow.Object)
             .Handle(new UpdateModifierCommand(1, "Bien cocido", null), CancellationToken.None);
 
-        Assert.Equal("Bien cocido", result.Name);
-        Assert.Equal("Desc original", result.Description);
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Bien cocido", result.Value!.Name);
+        Assert.Equal("Desc original", result.Value!.Description);
     }
 
     [Fact]
-    public async Task DeleteModifier_ModifierNotFound_ThrowsKeyNotFoundException()
+    public async Task DeleteModifier_ModifierNotFound_ReturnsNotFoundError()
     {
         var repo = new Mock<IModifierRepository>();
         repo.Setup(r => r.FindByIdAsync(99, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Modifier?)null);
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            new DeleteModifierCommandHandler(repo.Object, Mock.Of<IUnitOfWork>())
-                .Handle(new DeleteModifierCommand(99), CancellationToken.None));
+        var result = await new DeleteModifierCommandHandler(repo.Object, Mock.Of<IUnitOfWork>())
+            .Handle(new DeleteModifierCommand(99), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("NOT_FOUND", result.Error.Code);
     }
 
     [Fact]
@@ -90,9 +98,10 @@ public class ModifierCommandHandlerTests
         var uow = new Mock<IUnitOfWork>();
         uow.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
-        await new DeleteModifierCommandHandler(repo.Object, uow.Object)
+        var result = await new DeleteModifierCommandHandler(repo.Object, uow.Object)
             .Handle(new DeleteModifierCommand(1), CancellationToken.None);
 
+        Assert.True(result.IsSuccess);
         repo.Verify(r => r.Remove(modifier), Times.Once);
         uow.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }

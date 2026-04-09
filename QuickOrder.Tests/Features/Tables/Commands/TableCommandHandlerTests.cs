@@ -17,22 +17,25 @@ public class TableCommandHandlerTests
         var result = await new CreateTableCommandHandler(repo.Object, uow.Object)
             .Handle(new CreateTableCommand("5", 1), CancellationToken.None);
 
-        Assert.Equal("5", result.Number);
-        Assert.True(result.IsActive);
+        Assert.True(result.IsSuccess);
+        Assert.Equal("5", result.Value!.Number);
+        Assert.True(result.Value!.IsActive);
         repo.Verify(r => r.Add(It.IsAny<Table>()), Times.Once);
         uow.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task UpdateTable_TableNotFound_ThrowsKeyNotFoundException()
+    public async Task UpdateTable_TableNotFound_ReturnsNotFoundError()
     {
         var repo = new Mock<ITableRepository>();
         repo.Setup(r => r.FindByIdAsync(99, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Table?)null);
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            new UpdateTableCommandHandler(repo.Object, Mock.Of<IUnitOfWork>())
-                .Handle(new UpdateTableCommand(99, null, null, null), CancellationToken.None));
+        var result = await new UpdateTableCommandHandler(repo.Object, Mock.Of<IUnitOfWork>())
+            .Handle(new UpdateTableCommand(99, null, null, null), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("NOT_FOUND", result.Error.Code);
     }
 
     [Fact]
@@ -48,20 +51,23 @@ public class TableCommandHandlerTests
         var result = await new UpdateTableCommandHandler(repo.Object, uow.Object)
             .Handle(new UpdateTableCommand(1, "10", null, null), CancellationToken.None);
 
-        Assert.Equal("10", result.Number);
-        Assert.True(result.IsActive);
+        Assert.True(result.IsSuccess);
+        Assert.Equal("10", result.Value!.Number);
+        Assert.True(result.Value!.IsActive);
     }
 
     [Fact]
-    public async Task DeleteTable_TableNotFound_ThrowsKeyNotFoundException()
+    public async Task DeleteTable_TableNotFound_ReturnsNotFoundError()
     {
         var repo = new Mock<ITableRepository>();
         repo.Setup(r => r.FindByIdAsync(99, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Table?)null);
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            new DeleteTableCommandHandler(repo.Object, Mock.Of<IUnitOfWork>())
-                .Handle(new DeleteTableCommand(99), CancellationToken.None));
+        var result = await new DeleteTableCommandHandler(repo.Object, Mock.Of<IUnitOfWork>())
+            .Handle(new DeleteTableCommand(99), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("NOT_FOUND", result.Error.Code);
     }
 
     [Fact]
@@ -74,9 +80,10 @@ public class TableCommandHandlerTests
         var uow = new Mock<IUnitOfWork>();
         uow.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
-        await new DeleteTableCommandHandler(repo.Object, uow.Object)
+        var result = await new DeleteTableCommandHandler(repo.Object, uow.Object)
             .Handle(new DeleteTableCommand(1), CancellationToken.None);
 
+        Assert.True(result.IsSuccess);
         Assert.False(table.IsActive);
         uow.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }

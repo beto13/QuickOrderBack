@@ -7,47 +7,47 @@ using QuickOrder.Application.Features.ModifierGroups.Queries;
 
 namespace QuickOrder.Api.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
-public class ModifierGroupsController(IMediator mediator) : ControllerBase
+public class ModifierGroupsController(IMediator mediator) : ApiController
 {
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<PaginatedResponse<ModifierGroupDto>>>> GetAll(
+    public async Task<IActionResult> GetAll(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
         var result = await mediator.Send(new GetAllModifierGroupsQuery(pageNumber, pageSize), cancellationToken);
-        return Ok(ApiResponse<PaginatedResponse<ModifierGroupDto>>.Ok(result));
+        return ToResponse(result);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<ApiResponse<ModifierGroupDto>>> GetById(int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetModifierGroupByIdQuery(id), cancellationToken);
-        return Ok(ApiResponse<ModifierGroupDto>.Ok(result));
+        return ToResponse(result);
     }
 
     [HttpPost]
-    public async Task<ActionResult<ApiResponse<ModifierGroupDto>>> Create([FromBody] CreateModifierGroupRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Create([FromBody] CreateModifierGroupRequest request, CancellationToken cancellationToken)
     {
         var command = new CreateModifierGroupCommand(request.Name, request.MinSelections, request.MaxSelections, request.IsRequired, request.ProductId, request.CategoryId);
         var result = await mediator.Send(command, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = result.Id }, ApiResponse<ModifierGroupDto>.Ok(result, "Grupo de modificadores creado correctamente."));
+        if (result.IsFailure) return ToResponse(result);
+        return CreatedAtAction(nameof(GetById), new { id = result.Value!.Id }, ApiResponse<ModifierGroupDto>.Ok(result.Value!, "Grupo de modificadores creado correctamente."));
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<ApiResponse<ModifierGroupDto>>> Update(int id, [FromBody] UpdateModifierGroupRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateModifierGroupRequest request, CancellationToken cancellationToken)
     {
         var command = new UpdateModifierGroupCommand(id, request.Name, request.MinSelections, request.MaxSelections, request.IsRequired);
         var result = await mediator.Send(command, cancellationToken);
-        return Ok(ApiResponse<ModifierGroupDto>.Ok(result, "Grupo de modificadores actualizado correctamente."));
+        return ToResponse(result, "Grupo de modificadores actualizado correctamente.");
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult<ApiResponse<object>>> Delete(int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
-        await mediator.Send(new DeleteModifierGroupCommand(id), cancellationToken);
-        return Ok(ApiResponse<object>.Ok(new { }, "Grupo de modificadores eliminado correctamente."));
+        var result = await mediator.Send(new DeleteModifierGroupCommand(id), cancellationToken);
+        return ToResponse(result, "Grupo de modificadores eliminado correctamente.");
     }
 }

@@ -205,8 +205,8 @@
     }
 
     async function loadOrders() {
-        const data = await (await fetch('/api/orders/active')).json();
-        data.forEach(o => { orders[o.id] = o; renderCard(o); });
+        const res = await (await fetch('/api/orders/active')).json();
+        (res.data ?? []).forEach(o => { orders[o.id] = o; renderCard(o); });
         refreshEmpty();
     }
 

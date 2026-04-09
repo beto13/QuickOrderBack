@@ -44,11 +44,11 @@ public class CreateOrderCommandHandlerTests
         var result = await CreateHandler().Handle(command, CancellationToken.None);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(1, result.TableId);
-        Assert.Equal("5", result.TableNumber);
-        Assert.Single(result.Items);
-        Assert.Equal(1500m, result.Items[0].UnitPrice);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1, result.Value!.TableId);
+        Assert.Equal("5", result.Value!.TableNumber);
+        Assert.Single(result.Value!.Items);
+        Assert.Equal(1500m, result.Value!.Items[0].UnitPrice);
         _orderRepo.Verify(r => r.Add(It.IsAny<Order>()), Times.Once);
         _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         _hub.Verify(h => h.NotifyNewOrder(It.IsAny<OrderDto>()), Times.Once);
@@ -56,16 +56,17 @@ public class CreateOrderCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_TableNotFound_ThrowsKeyNotFoundException()
+    public async Task Handle_TableNotFound_ReturnsNotFoundError()
     {
         _tableRepo.Setup(r => r.FindByIdAsync(99, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Table?)null);
 
         var command = new CreateOrderCommand(99, 1, null, [new CreateOrderItemRequest(1, 1, null)]);
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            CreateHandler().Handle(command, CancellationToken.None));
+        var result = await CreateHandler().Handle(command, CancellationToken.None);
 
+        Assert.True(result.IsFailure);
+        Assert.Equal("NOT_FOUND", result.Error.Code);
         _orderRepo.Verify(r => r.Add(It.IsAny<Order>()), Times.Never);
         _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }

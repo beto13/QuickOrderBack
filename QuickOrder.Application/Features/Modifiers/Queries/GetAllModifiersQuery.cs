@@ -5,14 +5,16 @@ using QuickOrder.Application.Interfaces;
 
 namespace QuickOrder.Application.Features.Modifiers.Queries;
 
-public record GetAllModifiersQuery(int PageNumber = 1, int PageSize = 20) : IRequest<PaginatedResponse<ModifierDto>>;
+public record GetAllModifiersQuery(int PageNumber = 1, int PageSize = 20) : IRequest<Result<PaginatedResponse<ModifierDto>>>;
 
-public class GetAllModifiersQueryHandler(IModifierRepository modifierRepository) : IRequestHandler<GetAllModifiersQuery, PaginatedResponse<ModifierDto>>
+public class GetAllModifiersQueryHandler(IModifierRepository modifierRepository) : IRequestHandler<GetAllModifiersQuery, Result<PaginatedResponse<ModifierDto>>>
 {
-    public async Task<PaginatedResponse<ModifierDto>> Handle(GetAllModifiersQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedResponse<ModifierDto>>> Handle(GetAllModifiersQuery request, CancellationToken cancellationToken)
     {
         var (items, total) = await modifierRepository.GetAllPagedAsync(request.PageNumber, request.PageSize, cancellationToken);
         var dtos = items.Select(m => new ModifierDto(m.Id, m.ModifierGroupId, m.Name, m.Description)).ToList();
-        return PaginatedResponse<ModifierDto>.Create(dtos, total, request.PageNumber, request.PageSize);
+
+        return Result<PaginatedResponse<ModifierDto>>.Ok(
+            PaginatedResponse<ModifierDto>.Create(dtos, total, request.PageNumber, request.PageSize));
     }
 }

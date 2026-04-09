@@ -1,4 +1,5 @@
 using MediatR;
+using QuickOrder.Application.Common;
 using QuickOrder.Application.DTOs;
 using QuickOrder.Application.Interfaces;
 using QuickOrder.Application.Messages;
@@ -6,7 +7,7 @@ using QuickOrder.Domain.Entities;
 
 namespace QuickOrder.Application.Features.Orders.Commands;
 
-public record CreateOrderCommand(int TableId, int MenuId, string? Notes, List<CreateOrderItemRequest> Items) : IRequest<OrderDto>;
+public record CreateOrderCommand(int TableId, int MenuId, string? Notes, List<CreateOrderItemRequest> Items) : IRequest<Result<OrderDto>>;
 
 public class CreateOrderCommandHandler(
     ITableRepository tableRepository,
@@ -14,12 +15,13 @@ public class CreateOrderCommandHandler(
     IOrderRepository orderRepository,
     IUnitOfWork unitOfWork,
     IOrderHub hub,
-    IMessagePublisher publisher) : IRequestHandler<CreateOrderCommand, OrderDto>
+    IMessagePublisher publisher) : IRequestHandler<CreateOrderCommand, Result<OrderDto>>
 {
-    public async Task<OrderDto> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
+    public async Task<Result<OrderDto>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
     {
-        var table = await tableRepository.FindByIdAsync(request.TableId, cancellationToken)
-            ?? throw new KeyNotFoundException($"Mesa {request.TableId} no encontrada.");
+        var table = await tableRepository.FindByIdAsync(request.TableId, cancellationToken);
+        if (table is null)
+            return Result<OrderDto>.Fail(Error.NotFound($"Mesa {request.TableId} no encontrada."));
 
         var menuProducts = await menuProductRepository.GetByIdsAsync(
             request.Items.Select(i => i.MenuProductId), cancellationToken);
@@ -76,6 +78,6 @@ public class CreateOrderCommandHandler(
             )).ToList()
         ), cancellationToken);
 
-        return dto;
+        return Result<OrderDto>.Ok(dto);
     }
 }

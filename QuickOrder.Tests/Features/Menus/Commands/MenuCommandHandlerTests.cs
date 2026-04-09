@@ -17,22 +17,25 @@ public class MenuCommandHandlerTests
         var result = await new CreateMenuCommandHandler(repo.Object, uow.Object)
             .Handle(new CreateMenuCommand("Salón"), CancellationToken.None);
 
-        Assert.Equal("Salón", result.Name);
-        Assert.True(result.IsActive);
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Salón", result.Value!.Name);
+        Assert.True(result.Value!.IsActive);
         repo.Verify(r => r.Add(It.IsAny<Menu>()), Times.Once);
         uow.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task UpdateMenu_MenuNotFound_ThrowsKeyNotFoundException()
+    public async Task UpdateMenu_MenuNotFound_ReturnsNotFoundError()
     {
         var repo = new Mock<IMenuRepository>();
         repo.Setup(r => r.FindByIdAsync(99, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Menu?)null);
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            new UpdateMenuCommandHandler(repo.Object, Mock.Of<IUnitOfWork>())
-                .Handle(new UpdateMenuCommand(99, null, null), CancellationToken.None));
+        var result = await new UpdateMenuCommandHandler(repo.Object, Mock.Of<IUnitOfWork>())
+            .Handle(new UpdateMenuCommand(99, null, null), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("NOT_FOUND", result.Error.Code);
     }
 
     [Fact]
@@ -48,20 +51,23 @@ public class MenuCommandHandlerTests
         var result = await new UpdateMenuCommandHandler(repo.Object, uow.Object)
             .Handle(new UpdateMenuCommand(1, "Nuevo nombre", null), CancellationToken.None);
 
-        Assert.Equal("Nuevo nombre", result.Name);
-        Assert.True(result.IsActive);
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Nuevo nombre", result.Value!.Name);
+        Assert.True(result.Value!.IsActive);
     }
 
     [Fact]
-    public async Task DeleteMenu_MenuNotFound_ThrowsKeyNotFoundException()
+    public async Task DeleteMenu_MenuNotFound_ReturnsNotFoundError()
     {
         var repo = new Mock<IMenuRepository>();
         repo.Setup(r => r.FindByIdAsync(99, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Menu?)null);
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            new DeleteMenuCommandHandler(repo.Object, Mock.Of<IUnitOfWork>())
-                .Handle(new DeleteMenuCommand(99), CancellationToken.None));
+        var result = await new DeleteMenuCommandHandler(repo.Object, Mock.Of<IUnitOfWork>())
+            .Handle(new DeleteMenuCommand(99), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("NOT_FOUND", result.Error.Code);
     }
 
     [Fact]
@@ -74,9 +80,10 @@ public class MenuCommandHandlerTests
         var uow = new Mock<IUnitOfWork>();
         uow.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
-        await new DeleteMenuCommandHandler(repo.Object, uow.Object)
+        var result = await new DeleteMenuCommandHandler(repo.Object, uow.Object)
             .Handle(new DeleteMenuCommand(1), CancellationToken.None);
 
+        Assert.True(result.IsSuccess);
         Assert.False(menu.IsActive);
         uow.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }

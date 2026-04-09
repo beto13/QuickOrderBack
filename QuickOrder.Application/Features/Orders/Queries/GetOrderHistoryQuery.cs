@@ -5,11 +5,11 @@ using QuickOrder.Application.Interfaces;
 
 namespace QuickOrder.Application.Features.Orders.Queries;
 
-public record GetOrderHistoryQuery(int PageNumber = 1, int PageSize = 20) : IRequest<PaginatedResponse<OrderHistoryDto>>;
+public record GetOrderHistoryQuery(int PageNumber = 1, int PageSize = 20) : IRequest<Result<PaginatedResponse<OrderHistoryDto>>>;
 
-public class GetOrderHistoryQueryHandler(IOrderRepository orderRepository) : IRequestHandler<GetOrderHistoryQuery, PaginatedResponse<OrderHistoryDto>>
+public class GetOrderHistoryQueryHandler(IOrderRepository orderRepository) : IRequestHandler<GetOrderHistoryQuery, Result<PaginatedResponse<OrderHistoryDto>>>
 {
-    public async Task<PaginatedResponse<OrderHistoryDto>> Handle(GetOrderHistoryQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedResponse<OrderHistoryDto>>> Handle(GetOrderHistoryQuery request, CancellationToken cancellationToken)
     {
         var (orders, total) = await orderRepository.GetPagedAsync(request.PageNumber, request.PageSize, cancellationToken);
 
@@ -28,6 +28,7 @@ public class GetOrderHistoryQueryHandler(IOrderRepository orderRepository) : IRe
                 .Select(h => new StatusMovementDto(h.FromStatus, h.ToStatus, h.ChangedAt)).ToList()
         )).ToList();
 
-        return PaginatedResponse<OrderHistoryDto>.Create(dtos, total, request.PageNumber, request.PageSize);
+        return Result<PaginatedResponse<OrderHistoryDto>>.Ok(
+            PaginatedResponse<OrderHistoryDto>.Create(dtos, total, request.PageNumber, request.PageSize));
     }
 }
