@@ -72,7 +72,7 @@ QuickOrder.Worker        → BackgroundService (consume SQS, notifica via Signal
 - Interfaces de repositorio en `Application/Interfaces/`
 - Implementaciones en `Infrastructure/Repositories/`
 - Registrar todos los repositorios en `Infrastructure/DependencyInjection.cs`
-- Configuraciones EF en `Infrastructure/Persistence/Configurations/OrderConfiguration.cs` (un archivo, múltiples clases)
+- Configuraciones EF en `Infrastructure/Persistence/Configurations/` — un archivo por entidad (`OrderConfiguration.cs`, `ProductConfiguration.cs`, etc.)
 - Al agregar entidades nuevas: agregar `DbSet` en `AppDbContext` y en `IAppDbContext`
 
 ## AWS SQS
